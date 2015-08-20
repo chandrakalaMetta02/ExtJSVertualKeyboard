@@ -1,0 +1,350 @@
+<html>
+    <head>
+
+       <!-- hack to make the keyboard icon load. image location can't be set by css/js. -->
+       <base href="http://www.greywyvern.com/code/javascript/">
+       <script type="text/javascript" src="http://sdn.walkingtree.in/ExtJS/ExtJS4.1.1/ext-all.js"></script>
+        <!-- Extjs 4.1.1 css -->
+		<link rel="stylesheet" type="text/css" href="http://sdn.walkingtree.in/ExtJS/ExtJS4.1.1/resources/css/ext-all.css">
+	
+
+       <!-- java script code of app.js can be seen in JS tab-->
+       <script type="text/javascript" src="keyboard.js"></script>
+       <link rel="stylesheet" type="text/css" href="keyboard.css">
+       
+  	
+
+       <style type="text/css">
+	       
+       </style>
+       <script>
+            Ext.onReady(function() {
+  
+			 var gender = Ext.create('Ext.data.Store', {
+			    fields: ['id', 'value'],
+			    data : [
+			        {"id":"F", "value":"Female"},
+			        {"id":"M", "value":"Male"}
+			    ]
+			});
+			  
+			Ext.apply(Ext.form.field.VTypes, {
+			    CCNumber :  function(v) {
+			        return /^d{3,5}$/.test(v);
+			    },
+			    CCNumberText: 'Must be a number between 3 to 5 digits',
+			    CCNumberMask: /[d]/i
+			}); 
+			  
+			 var formPanel = Ext.create('Ext.form.Panel', {
+			      title : 'Basic Form',
+			      width : 600,
+			      height : 550,
+			      renderTo : Ext.getBody(),
+			      items : [ 
+			        {
+			          xtype:'fieldset',
+			          title: 'Personal Details',
+			          collapsible : false,
+			          items : [
+			            
+			            {
+			              xtype : 'fieldcontainer',
+			              layout : 'hbox',
+			              defaults : { xtype : 'textfield', vtype : 'alpha', margin : '0 5 0 0' },
+			              items : [
+			              {
+			                name : 'firstName',
+			            	fieldLabel : 'First Name'
+			            }, {
+			              	name : 'lastName',
+			              	fieldLabel : 'Last Name',
+			                vtype : 'alphanum'
+			            }
+			              ]
+			       }, {
+			          xtype : 'combobox',
+			          fieldLabel: 'Gender',
+			          name : 'gender',
+			          store: gender,
+			          allowBlank : false,
+			          queryMode: 'local',
+			          displayField: 'value',
+			          valueField: 'id',
+			          forceSelection : true,
+			          value :'F',
+			          multiSelect : false
+			          // , editable : false
+			          // , hideTrigger : true
+			      }, {
+			        xtype: 'datefield',
+			        anchor: '50%',
+			        fieldLabel: 'Date of birth',
+			        name: 'dob',
+			        //editable : false,
+			        format : 'm/d/Y',
+			        maxValue: new Date('12/31/1994'),
+			        value : new Date('1/1/1990'),
+			        showToday : false,
+			        disabledDays : [0, 6],
+			        disabledDates: ["^01"],
+			        id : 'dob_basicform',
+			        listeners : {
+			          blur : {
+			            
+			            fn : function( thisObj, The, eOpts ) {
+			               var birthDate = this.getValue();
+			               var today = new Date();
+			               var ageInYr = today.getFullYear() - birthDate.getFullYear();
+			               var m = today.getMonth() - birthDate.getMonth();
+			              
+			              if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+			                  ageInYr--;
+			              }
+			              
+			              Ext.getCmp('agefield').setValue(ageInYr);
+			            }
+			          }
+			        }
+			      }, {
+			        xtype: 'displayfield',
+			        fieldLabel: 'Age',
+			        name : 'age',
+			        value: 23 ,
+			        id : 'agefield'
+			      },{
+			        xtype : 'textfield',
+			        fieldLabel : 'Email',
+			        anchor : '90%',
+			        name : 'email',
+			        vtype : 'email',
+			        vtypeText : 'Please enter valid email address',
+			        msgTarget : 'under'
+			      },{
+			        xtype : 'textfield',
+			        fieldLabel : 'password',
+			        anchor : '90%',
+			        name : 'password',
+			        vtypeText : 'Please enter password should be 8 characters',
+			        msgTarget : 'under',
+			        listeners:{
+			        	afterrender:function(cmp){
+			                cmp.inputEl.set({
+			                    autocomplete:'on'
+			                });
+			                //attach the keyboard
+			                //because it modifies the dom directly we need to hack it to 
+			                //inform extjs (really, ext has no such listener option?)
+			                var interval = window.setInterval(function() {
+				                try {
+				                    var newValue = cmp.inputEl.dom.value;
+				                    var oldValue = cmp.getValue();
+				                    if (newValue != oldValue) {
+				                        cmp.setValue( newValue );
+				                    }
+				                } catch (e) {
+				                    //form was removed
+				                    window.clearInterval(interval);
+				                }
+				            }, 100);
+			                // see http://www.greywyvern.com/code/javascript/keyboard
+			                VKI_attach(cmp.inputEl.dom); 
+			             }
+			        }
+			      }]
+			        },
+			        
+			        {
+			          xtype:'fieldset',
+			          title: 'Payment Details',
+			          collapsible: true,
+			          collapsed : true,
+			          // layout: 'column',
+			          // defaults : {columnWidth : 0.33},
+			        items : [ {
+			        xtype: 'radiogroup',
+			        columnWidth : 1.0,
+			        fieldLabel: 'Card Type',
+			        labelAlign : 'top',
+			        items : [
+			         {
+			              boxLabel  : 'Visa',
+			              name      : 'creditcard',
+			              inputValue: 'visa',
+			              id        : 'radiovisa'
+			          },
+			          {
+			              boxLabel  : 'Master Card',
+			              name      : 'creditcard',
+			              inputValue: 'mastercard',
+			              id        : 'radiomastercard'
+			          },
+			          {
+			              boxLabel  : 'American Express',
+			              name      : 'creditcard',
+			              inputValue: 'amex',
+			              id        : 'radioamex'
+			          },
+			          {
+			              boxLabel  : 'Discover',
+			              name      : 'creditcard',
+			              inputValue: 'discover',
+			              id        : 'radiodiscover',
+			              checked : true
+			          } ]
+			      },{
+			      	xtype : 'fieldcontainer',
+			        fieldLabel : 'Card Number',
+			        layout : 'hbox',
+			        labelAlign : 'top',
+			        name : 'cardNumber',
+			        defaults : { 
+			          		allowBlank : false,
+			                blankText : 'This is a mandatory field.',
+			          		xtype : 'textfield',
+			          		vtype : 'CCNumber',
+			        		msgTarget : 'under'
+			        	},
+			        items : [
+			                 {
+			                 	vtypeText : 'Invalid credit card number'
+			                 }, 
+			                 {
+			                   xtype : 'displayfield',
+			                   value : '-'
+			                 },{
+			                 	
+			                 }, 
+			                 {
+			                   xtype : 'displayfield',
+			                   value : '-'
+			                 }, {
+			                 	
+			                 }, 
+			                 {
+			                   xtype : 'displayfield',
+			                   value : '-'
+			                 }, {
+			                 	
+			                 }
+			                 
+			        ]
+			      }, {
+			        xtype : 'fieldcontainer',
+			        layout : 'hbox',
+			        items : [{
+			          xtype: 'numberfield',
+			          fieldLabel : 'Expiry Month',
+			          allowDecimals : false,
+			          name : 'CCExpiryMonth',
+			          minValue : 1,
+			          maxValue : 12,
+			          labelAlign : 'top',
+			          value : 3
+			        },
+			        {
+			          xtype: 'numberfield',
+			          fieldLabel : 'Expiry Year',
+			          name : 'CCExpiryYear',
+			          minValue : 2013,
+			          maxValue : 2045,
+			          allowDecimals : false,
+			          labelAlign : 'top',
+			          value : 2013
+			        },
+			        {
+			          xtype: 'numberfield',
+			          fieldLabel : 'CCV',
+			          name : 'CCV',
+			          labelAlign : 'top',
+			          inputType : 'password',
+			          hideTrigger : true,
+			          keyNavEnabled: false,
+			          mouseWheelEnabled: false,
+			          maxLength : 3,
+			          enforceMaxLength : true,
+			          margin : '0, 0 0 30'
+			                   }]
+			          }
+			          ]}, {
+			        xtype: 'textarea',
+			        fieldLabel : 'Special Instruction',
+			        labelAlign : 'top',
+			            name : 'specialInstruction',
+			        emptyText : 'Leave your special instruction / notes',
+			        anchor : '100%',
+			        grow : true,
+			        growMax : 150
+			      }, {
+			        xtype: 'checkboxgroup',
+			        name: 'optinout',
+			        fieldLabel: 'Opt-in / Opt-out',
+			        labelAlign: 'top',
+			        allowBlank:false,
+			        msgTarget : 'under',
+			        columns: 1,
+			        items: [{
+			                boxLabel: 'Send me your offers',
+			                name: 'allupdates',
+			                inputValue: '1',
+			                name : 'sendOffers'
+			              }, {
+			                boxLabel: 'Send updates on the product purchased by me',
+			                name: 'purchasedproduct',
+			                inputValue: '2',
+			                checked : true
+			         	}
+			         ]
+			        
+			      },{
+			        xtype : 'checkboxfield',
+			        boxLabel : 'I agree to the terms and condition listed on this website',
+			        name : 'tnc',
+			        id : 'tnccheckbox',
+			        handler : function(checkbox, checked) {
+			          var button = this.up('form').query('button[text=Submit]');
+			          
+			          if (checked) {
+			             button[0].enable(); 
+			          } else {
+			             button[0].disable();
+			          }
+			        }
+			      }, {
+			        xtype : 'button',
+			        text : 'Reset',
+			        handler: function() {
+			          Ext.Msg.alert('Reset', 'Form will be reset!');
+			        }
+			      }, {
+			        xtype : 'button',
+			        text : 'Submit',
+			        disabled : true,
+			        handler: function() {
+			           // Ext.Msg.alert('Submit', 'Form will be submitted to server!');
+			          var form = this.up('form').getForm();
+			          
+			          if ( form.isValid() ) {
+			              form.submit({
+			                url : 'data/tutorials/extjs4x/form/ReadFiles.php',
+			                waitMsg : 'Form Submit Tutorial',
+			                
+			                success: function(user) {
+			                  Ext.Msg.alert('Success', 'Successful Submit')
+			                },
+			                failure: function(user) {
+			                  Ext.Msg.alert('Failure', 'Failed Submit Call!')
+			                }
+			             });
+			          } else {
+			           	 Ext.Msg.alert('Failure', 'Invalid form!')
+			          }
+			        }
+			      }]
+			  });
+			});
+        </script>
+    </head>
+    <body>
+    </body>
+</html>
